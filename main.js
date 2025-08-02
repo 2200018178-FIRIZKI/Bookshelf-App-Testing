@@ -3,9 +3,16 @@ let notDoneYet = [];
 document.addEventListener('DOMContentLoaded', () => {
   const submitForm = document.getElementById('bookForm');
   submitForm.addEventListener('submit', function (event) {
-    // event.preventDefault();
+    event.preventDefault();
     addTodo();
   });
+
+  const searchBookForm = document.getElementById('searchBook');
+  searchBookForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    matchBook();
+  });
+
   showBooks();
 });
 
@@ -29,15 +36,15 @@ function showBooks() {
 
     let bookItemTitle = document.createElement('h3');
     bookItemTitle.textContent = bookInfo.title;
-    bookItemTitle.setAttribute('data-testid', `${bookInfo.title}`);
+    bookItemTitle.setAttribute('data-testid', 'bookItemTitle');
 
     let bookItemAuthor = document.createElement('p');
     bookItemAuthor.textContent = `Penulis: ${bookInfo.author}`;
-    bookItemAuthor.setAttribute('data-testid', `${bookInfo.author}`);
+    bookItemAuthor.setAttribute('data-testid', 'bookItemAuthor');
 
     let bookItemYear = document.createElement('p');
     bookItemYear.textContent = `Tahun: ${bookInfo.year}`;
-    bookItemYear.setAttribute('data-testid', `${bookInfo.year}`);
+    bookItemYear.setAttribute('data-testid', 'bookItemYear');
 
     let bookItemIsCompleteButton = document.createElement('button');
     bookItemIsCompleteButton.textContent = 'Selesai dibaca';
@@ -46,13 +53,13 @@ function showBooks() {
       'data-testid',
       'bookItemIsCompleteButton'
     );
-    bookItemIsCompleteButton.setAttribute('onclick', `itemIsComplete(id)`);
+    bookItemIsCompleteButton.setAttribute('onclick', `itemIsComplete(this.id)`);
 
     let bookItemDeleteButton = document.createElement('button');
     bookItemDeleteButton.textContent = 'Hapus Buku';
     bookItemDeleteButton.setAttribute('id', `${bookInfo.id}2`);
     bookItemDeleteButton.setAttribute('data-testid', 'bookItemDeleteButton');
-    bookItemDeleteButton.setAttribute('onclick', 'deleteMe(id)');
+    bookItemDeleteButton.setAttribute('onclick', 'deleteMe(this.id)');
 
     let bookItemEditButton = document.createElement('button');
     bookItemEditButton.textContent = 'Edit Buku';
@@ -119,48 +126,68 @@ let deleteMe = (id) => {
   location.reload();
 };
 
-document.addEventListener('DOMContentLoaded', function () {
-  const searchBookForm = document.getElementById('searchBook');
-  searchBookForm.addEventListener('submit', function (event) {
-    event.preventDefault();
-    matchBook();
-  });
-});
-
-let myLibrary = [];
-
 function matchBook() {
   const valueSearchBook = document.getElementById('searchBookTitle').value;
+  
+  // Clear previous search results
+  const existingResults = document.querySelectorAll('.search-result');
+  existingResults.forEach(result => result.remove());
+
+  if (!valueSearchBook.trim()) {
+    alert('Masukkan judul buku yang ingin dicari!');
+    return;
+  }
+
+  let foundBooks = [];
 
   for (let i = 0; i < localStorage.length; i++) {
-    bookKey = localStorage.key(i);
-    bookInfo = JSON.parse(localStorage.getItem(`${bookKey}`));
-    myLibrary.push(bookInfo);
-    console.log(myLibrary);
+    const bookKey = localStorage.key(i);
+    const bookInfo = JSON.parse(localStorage.getItem(bookKey));
+    
+    // Search by title (case insensitive)
+    if (bookInfo.title.toLowerCase().includes(valueSearchBook.toLowerCase())) {
+      foundBooks.push(bookInfo);
+    }
+  }
 
+  if (foundBooks.length === 0) {
+    const noResultDiv = document.createElement('div');
+    noResultDiv.className = 'search-result';
+    noResultDiv.style.textAlign = 'center';
+    noResultDiv.style.padding = '1rem';
+    noResultDiv.style.color = '#3e5879';
+    noResultDiv.textContent = 'Tidak ada buku yang ditemukan';
+    
+    const searchBookForm = document.getElementById('searchBook');
+    searchBookForm.appendChild(noResultDiv);
+    return;
+  }
+
+  // Display found books
+  foundBooks.forEach(bookInfo => {
     let bookItemTitle = document.createElement('h3');
     bookItemTitle.textContent = bookInfo.title;
+    bookItemTitle.setAttribute('data-testid', 'bookItemTitle');
 
     let bookItemAuthor = document.createElement('p');
     bookItemAuthor.textContent = `Penulis: ${bookInfo.author}`;
+    bookItemAuthor.setAttribute('data-testid', 'bookItemAuthor');
 
     let bookItemYear = document.createElement('p');
     bookItemYear.textContent = `Tahun: ${bookInfo.year}`;
+    bookItemYear.setAttribute('data-testid', 'bookItemYear');
 
     let bookItemIsCompleteButton = document.createElement('button');
-    bookItemIsCompleteButton.textContent = 'Selesai dibaca';
+    bookItemIsCompleteButton.textContent = bookInfo.isComplete ? 'Belum selesai dibaca' : 'Selesai dibaca';
     bookItemIsCompleteButton.setAttribute('id', `${bookInfo.id}1`);
-    bookItemIsCompleteButton.setAttribute(
-      'data-testid',
-      'bookItemIsCompleteButton'
-    );
-    bookItemIsCompleteButton.setAttribute('onclick', `itemIsComplete(id)`);
+    bookItemIsCompleteButton.setAttribute('data-testid', 'bookItemIsCompleteButton');
+    bookItemIsCompleteButton.setAttribute('onclick', `itemIsComplete(this.id)`);
 
     let bookItemDeleteButton = document.createElement('button');
     bookItemDeleteButton.textContent = 'Hapus Buku';
     bookItemDeleteButton.setAttribute('id', `${bookInfo.id}2`);
     bookItemDeleteButton.setAttribute('data-testid', 'bookItemDeleteButton');
-    bookItemDeleteButton.setAttribute('onclick', 'deleteMe(id)');
+    bookItemDeleteButton.setAttribute('onclick', 'deleteMe(this.id)');
 
     let bookItemEditButton = document.createElement('button');
     bookItemEditButton.textContent = 'Edit Buku';
@@ -176,21 +203,22 @@ function matchBook() {
     buttonContainer.appendChild(bookItemEditButton);
 
     const bookItem = document.createElement('div');
+    bookItem.className = 'search-result';
     bookItem.style.display = 'flex';
     bookItem.style.flexDirection = 'column';
     bookItem.style.gap = '0.5rem';
     bookItem.style.border = 'solid 0.1rem #213555';
     bookItem.style.borderRadius = '1rem';
     bookItem.style.padding = '1rem';
-    bookItem.style.marginTop = '2rem';
+    bookItem.style.marginTop = '1rem';
     bookItem.appendChild(bookItemTitle);
     bookItem.appendChild(bookItemAuthor);
     bookItem.appendChild(bookItemYear);
     bookItem.appendChild(buttonContainer);
+    bookItem.setAttribute('data-bookid', `${bookInfo.id}`);
+    bookItem.setAttribute('data-testid', 'bookItem');
 
-    if (valueSearchBook == bookInfo.title) {
-      const searchBookForm = document.getElementById('searchBook');
-      searchBookForm.append(container);
-    }
-  }
+    const searchBookForm = document.getElementById('searchBook');
+    searchBookForm.appendChild(bookItem);
+  });
 }

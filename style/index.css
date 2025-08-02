@@ -168,3 +168,40 @@ form {
   flex-direction: row;
   gap: 0.5rem;
 }
+
+/* Search Results */
+.search-result {
+  border: 2px solid #213555 !important;
+  border-radius: 1rem !important;
+  padding: 1rem !important;
+  margin-top: 1rem !important;
+  background-color: #f8f9fa;
+}
+
+.search-result h3 {
+  color: #213555 !important;
+  margin-bottom: 0.5rem;
+}
+
+.search-result p {
+  color: #3e5879 !important;
+  margin-bottom: 0.5rem;
+}
+
+.search-result button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: #213555;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.search-result button:hover {
+  background-color: #3e5879;
+}
+
+.search-result button:active {
+  background-color: #1a2a44;
+}
